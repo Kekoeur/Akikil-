@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qui est-ce ? - Jeu de Devinette Sécurisé</title>
+    <title>AkikilèleQ 🍑</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -30,7 +30,7 @@
         </div>
 
         <div id="game-screen" style="display: none;">
-            <h1>🎯 Qui est-ce ?</h1>
+            <h1>🍑 AkikilèleQ 🍑</h1>
             <div class="score">
                 Score: <span id="score">0</span> / <span id="total">0</span>
             </div>
@@ -39,7 +39,11 @@
             </div>
             
             <div class="photo-container">
-                <img id="current-photo" alt="Photo mystère">
+                <img id="current-photo" alt="Photo mystère" style="display: none;">
+                <div id="image-loading" class="image-loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div>Déchiffrement de l'image...</div>
+                </div>
             </div>
             
             <div class="options-container" id="options"></div>
@@ -53,8 +57,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="data/encrypted-data-drive.js"></script>
-    <script src="js/crypto.js"></script>
+    <script src="data/encrypted-data.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>

@@ -1,6 +1,10 @@
 /**
- * Logique pour l'outil de chiffrement des données
+ * Logique principale pour le générateur d'images chiffrées
  */
+
+// Variables globales
+let gameData = [];
+let selectedImages = new Map();
 
 /**
  * Remplit le champ JSON avec un exemple
@@ -8,31 +12,38 @@
 function fillExample() {
     const exampleData = [
         {
-            "name": "Alice Dupont",
+            "name": "Christopher",
             "photos": [
-                "https://lh3.googleusercontent.com/d/1ABC123_EXEMPLE_ID_IMAGE_ALICE_1",
-                "https://lh3.googleusercontent.com/d/1ABC123_EXEMPLE_ID_IMAGE_ALICE_2",
-                "https://lh3.googleusercontent.com/d/1ABC123_EXEMPLE_ID_IMAGE_ALICE_3"
+                "/images/images/images.webp"
             ]
         },
         {
-            "name": "Bob Martin",
+            "name": "Théo",
             "photos": [
-                "https://lh3.googleusercontent.com/d/1ABC123_EXEMPLE_ID_IMAGE_BOB_1",
-                "https://lh3.googleusercontent.com/d/1ABC123_EXEMPLE_ID_IMAGE_BOB_2"
+                "/images/images/images-2.webp"
             ]
         },
         {
-            "name": "Claire Moreau",
+            "name": "Ioann",
             "photos": [
-                "https://lh3.googleusercontent.com/d/1ABC123_EXEMPLE_ID_IMAGE_CLAIRE_1",
-                "https://lh3.googleusercontent.com/d/1ABC123_EXEMPLE_ID_IMAGE_CLAIRE_2",
-                "https://lh3.googleusercontent.com/d/1ABC123_EXEMPLE_ID_IMAGE_CLAIRE_3"
+                "/images/images/images-3.webp"
+            ]
+        },
+        {
+            "name": "Nathan",
+            "photos": [
+                "/images/images/images-4.webp"
+            ]
+        },
+        {
+            "name": "Bryan",
+            "photos": [
+                "/images/images/images-5.webp"
             ]
         }
     ];
     
-    document.getElementById('json-input').value = JSON.stringify(exampleData, null, 2);
+    document.getElementById('json-input').value = JSON.stringify(exampleData, null, 4);
     validateJSON();
 }
 
@@ -40,121 +51,316 @@ function fillExample() {
  * Valide le JSON saisi par l'utilisateur
  */
 function validateJSON() {
-    const jsonInput = document.getElementById('json-input').value.trim();
-    const statusDiv = document.getElementById('json-status');
+    const input = document.getElementById('json-input').value.trim();
+    const status = document.getElementById('json-status');
     
-    if (!jsonInput) {
-        statusDiv.innerHTML = '';
-        return;
+    if (!input) {
+        status.innerHTML = '';
+        gameData = [];
+        checkGenerateButton();
+        return false;
     }
     
     try {
-        const data = JSON.parse(jsonInput);
-        const validation = validateGameData(data);
+        const data = JSON.parse(input);
         
-        if (validation.valid) {
-            statusDiv.innerHTML = `
-                <div class="status-success">
-                    ✅ JSON valide ! 
-                    <strong>${validation.stats.totalPeople} personnes</strong>, 
-                    <strong>${validation.stats.totalPhotos} photos</strong> au total.
+        if (!Array.isArray(data)) {
+            throw new Error('Le JSON doit être un tableau');
+        }
+
+        let totalPeople = 0;
+        let totalPhotos = 0;
+        const requiredImages = new Set();
+
+        data.forEach(person => {
+            if (!person.name || !person.photos || !Array.isArray(person.photos)) {
+                throw new Error(`Format invalide pour la personne: ${JSON.stringify(person)}`);
+            }
+
+            totalPeople++;
+            person.photos.forEach(photo => {
+                totalPhotos++;
+                // Extraire le nom de fichier du chemin
+                const filename = photo.split('/').pop();
+                requiredImages.add(filename);
+            });
+        });
+
+        gameData = data;
+
+        const statsHtml = `
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number">${totalPeople}</div>
+                    <div class="stat-label">Personnes</div>
                 </div>
-            `;
-        } else {
-            statusDiv.innerHTML = `
-                <div class="status-error">
-                    ❌ Erreurs détectées :<br>
-                    ${validation.errors.map(error => `• ${error}`).join('<br>')}
+                <div class="stat-card">
+                    <div class="stat-number">${totalPhotos}</div>
+                    <div class="stat-label">Photos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${requiredImages.size}</div>
+                    <div class="stat-label">Fichiers requis</div>
+                </div>
+            </div>
+        `;
+
+        status.innerHTML = `
+            <div class="status status-success">
+                ✅ JSON valide !
+            </div>
+            ${statsHtml}
+            <div class="info">
+                <strong>Fichiers d'images requis :</strong><br>
+                ${Array.from(requiredImages).join(', ')}
+            </div>
+        `;
+
+        checkGenerateButton();
+        return true;
+
+    } catch (error) {
+        status.innerHTML = `<div class="status status-error">❌ Erreur: ${error.message}</div>`;
+        gameData = [];
+        checkGenerateButton();
+        return false;
+    }
+}
+
+/**
+ * Gère la sélection des fichiers images
+ */
+function handleImageSelection() {
+    const fileInput = document.getElementById('image-files');
+    const status = document.getElementById('image-status');
+    const files = fileInput.files;
+
+    selectedImages.clear();
+
+    if (files.length === 0) {
+        status.innerHTML = '';
+        checkGenerateButton();
+        return;
+    }
+
+    // Créer une map des fichiers sélectionnés
+    for (let file of files) {
+        selectedImages.set(file.name, file);
+    }
+
+    // Vérifier la correspondance avec le JSON
+    if (gameData.length > 0) {
+        const requiredImages = new Set();
+        gameData.forEach(person => {
+            person.photos.forEach(photo => {
+                const filename = photo.split('/').pop();
+                requiredImages.add(filename);
+            });
+        });
+
+        const selectedFileNames = new Set(selectedImages.keys());
+        const missing = Array.from(requiredImages).filter(img => !selectedFileNames.has(img));
+        const extra = Array.from(selectedFileNames).filter(img => !requiredImages.has(img));
+
+        let statusHtml = `
+            <div class="status ${missing.length === 0 ? 'status-success' : 'status-warning'}">
+                📁 ${files.length} fichiers sélectionnés
+            </div>
+        `;
+
+        if (missing.length > 0) {
+            statusHtml += `
+                <div class="status status-error">
+                    ❌ Fichiers manquants : ${missing.join(', ')}
                 </div>
             `;
         }
-        
-    } catch (error) {
-        statusDiv.innerHTML = `
-            <div class="status-error">
-                ❌ JSON invalide : ${error.message}
+
+        if (extra.length > 0) {
+            statusHtml += `
+                <div class="status status-warning">
+                    ⚠️ Fichiers non utilisés : ${extra.join(', ')}
+                </div>
+            `;
+        }
+
+        status.innerHTML = statusHtml;
+    } else {
+        status.innerHTML = `
+            <div class="status status-success">
+                📁 ${files.length} fichiers sélectionnés
             </div>
         `;
     }
+
+    checkGenerateButton();
 }
 
 /**
- * Chiffre les données avec le mot de passe fourni
+ * Vérifie si le bouton de génération peut être activé
  */
-function encryptData() {
-    const jsonInput = document.getElementById('json-input').value.trim();
+function checkGenerateButton() {
+    const generateBtn = document.getElementById('generate-btn');
+    const hasValidJSON = gameData.length > 0;
+    const hasImages = selectedImages.size > 0;
     const passwordInput = document.getElementById('password-input').value.trim();
-    const outputTextarea = document.getElementById('encrypted-output');
-    const copyBtn = document.getElementById('copy-btn');
-    
+
+    generateBtn.disabled = !(hasValidJSON && hasImages && passwordInput.length >= 6);
+}
+
+/**
+ * Génère le jeu complet avec images chiffrées
+ */
+async function generateGame() {
+    const password = document.getElementById('password-input').value.trim();
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const status = document.getElementById('generation-status');
+    const generateBtn = document.getElementById('generate-btn');
+
     // Vérifications préliminaires
-    if (!jsonInput) {
-        alert('Veuillez saisir les données JSON à chiffrer');
-        document.getElementById('json-input').focus();
+    if (!validateJSON()) {
+        status.innerHTML = '<div class="status status-error">❌ JSON invalide</div>';
         return;
     }
-    
-    if (!passwordInput) {
-        alert('Veuillez saisir un mot de passe pour le chiffrement');
-        document.getElementById('password-input').focus();
+
+    if (selectedImages.size === 0) {
+        status.innerHTML = '<div class="status status-error">❌ Aucune image sélectionnée</div>';
         return;
     }
-    
-    if (passwordInput.length < 6) {
-        alert('Le mot de passe doit contenir au moins 6 caractères pour une sécurité minimale');
-        document.getElementById('password-input').focus();
+
+    if (password.length < 6) {
+        status.innerHTML = '<div class="status status-error">❌ Mot de passe trop court (minimum 6 caractères)</div>';
         return;
     }
+
+    // Vérifier que toutes les images requises sont présentes
+    const requiredImages = new Set();
+    gameData.forEach(person => {
+        person.photos.forEach(photo => {
+            const filename = photo.split('/').pop();
+            requiredImages.add(filename);
+        });
+    });
+
+    const missingImages = Array.from(requiredImages).filter(img => !selectedImages.has(img));
+    if (missingImages.length > 0) {
+        status.innerHTML = `<div class="status status-error">❌ Images manquantes: ${missingImages.join(', ')}</div>`;
+        return;
+    }
+
+    // Désactiver le bouton et afficher la progression
+    generateBtn.disabled = true;
+    progressContainer.style.display = 'block';
     
     try {
-        // Parser et valider les données JSON
-        const data = JSON.parse(jsonInput);
-        const validation = validateGameData(data);
-        
-        if (!validation.valid) {
-            alert('Données invalides :\n' + validation.errors.join('\n'));
-            return;
+        // Étape 1: Préparer les données
+        progressFill.style.width = '10%';
+        progressText.textContent = 'Préparation des données...';
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Créer les données avec images chiffrées
+        const gameDataWithImages = [];
+        let processedImages = 0;
+        const totalImages = gameData.reduce((sum, person) => sum + person.photos.length, 0);
+
+        for (const person of gameData) {
+            const personData = {
+                name: person.name,
+                photos: []
+            };
+
+            for (const photoPath of person.photos) {
+                const filename = photoPath.split('/').pop();
+                const imageFile = selectedImages.get(filename);
+
+                if (!imageFile) {
+                    throw new Error(`Image manquante: ${filename}`);
+                }
+
+                // Lire l'image et la convertir en base64
+                const base64Image = await fileToBase64(imageFile);
+                
+                // Chiffrer l'image
+                const encryptedImage = encrypt(base64Image, password);
+                
+                personData.photos.push(encryptedImage);
+                processedImages++;
+
+                // Mettre à jour la progression
+                const progress = 10 + (processedImages / totalImages) * 70;
+                progressFill.style.width = progress + '%';
+                progressText.textContent = `Traitement des images... ${processedImages}/${totalImages}`;
+                
+                // Petit délai pour la fluidité de l'interface
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            gameDataWithImages.push(personData);
         }
-        
-        // Chiffrer les données
-        const encryptedData = encrypt(data, passwordInput);
-        
-        // Générer le code JavaScript complet
-        const jsCode = generateEncryptedDataFile(encryptedData, validation.stats);
-        
+
+        // Étape 2: Chiffrer les données complètes
+        progressFill.style.width = '85%';
+        progressText.textContent = 'Chiffrement final...';
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const encryptedGameData = encrypt(gameDataWithImages, password);
+
+        // Étape 3: Générer le code JavaScript
+        progressFill.style.width = '95%';
+        progressText.textContent = 'Génération du code...';
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        const jsCode = generateJavaScriptCode(encryptedGameData, {
+            totalPeople: gameData.length,
+            totalPhotos: totalImages
+        });
+
         // Afficher le résultat
-        outputTextarea.value = jsCode;
-        copyBtn.style.display = 'block';
-        
-        // Scroll vers le résultat
-        outputTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Message de succès
-        showSuccessMessage(validation.stats);
-        
+        document.getElementById('output-data').value = jsCode;
+        document.getElementById('copy-btn').style.display = 'block';
+
+        progressFill.style.width = '100%';
+        progressText.textContent = 'Terminé !';
+
+        status.innerHTML = `
+            <div class="status status-success">
+                ✅ Jeu généré avec succès !<br>
+                <small>Toutes les images sont maintenant chiffrées et intégrées dans le code.</small>
+            </div>
+        `;
+
+        setTimeout(() => {
+            progressContainer.style.display = 'none';
+        }, 2000);
+
     } catch (error) {
-        alert('Erreur lors du chiffrement : ' + error.message);
-        console.error('Erreur de chiffrement:', error);
+        status.innerHTML = `<div class="status status-error">❌ Erreur: ${error.message}</div>`;
+        progressContainer.style.display = 'none';
+    } finally {
+        generateBtn.disabled = false;
     }
 }
 
 /**
- * Génère le fichier JavaScript complet avec les données chiffrées
+ * Génère le code JavaScript complet avec les données chiffrées
  */
-function generateEncryptedDataFile(encryptedData, stats) {
+function generateJavaScriptCode(encryptedData, stats) {
     const timestamp = new Date().toISOString();
     
     return `/**
- * Données chiffrées pour le jeu "Qui est-ce ?"
+ * Données chiffrées pour le jeu "Qui est-ce ?" avec images intégrées
  * 
  * Généré le: ${timestamp}
  * Personnes: ${stats.totalPeople}
  * Photos: ${stats.totalPhotos}
  * 
  * IMPORTANT: Ne partagez jamais ce fichier avec le mot de passe !
+ * Les images sont chiffrées et intégrées - aucun fichier externe requis.
  */
 
-// Données du jeu chiffrées
+// Données du jeu chiffrées (avec images)
 const ENCRYPTED_GAME_DATA = "${encryptedData}";
 
 // Informations sur les données (non sensibles)
@@ -162,77 +368,26 @@ const GAME_INFO = {
     totalPeople: ${stats.totalPeople},
     totalPhotos: ${stats.totalPhotos},
     generatedAt: "${timestamp}",
-    version: "1.0"
+    version: "2.0",
+    hasEmbeddedImages: true
 };
 
-// Vérification de l'intégrité (optionnel)
-if (typeof decrypt === 'undefined') {
-    console.error('Erreur: Fonctions de déchiffrement non trouvées. Vérifiez que crypto.js est bien chargé.');
+// Vérification de l'intégrité
+if (typeof ENCRYPTED_GAME_DATA === 'undefined') {
+    console.error('Erreur: Données du jeu non trouvées.');
 }`;
-}
-
-/**
- * Affiche un message de succès après chiffrement
- */
-function showSuccessMessage(stats) {
-    // Créer un élément de notification temporaire
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(45deg, #4CAF50, #45a049);
-        color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 1000;
-        font-weight: 600;
-        animation: slideIn 0.3s ease-out;
-    `;
-    
-    notification.innerHTML = `
-        ✅ Données chiffrées avec succès !<br>
-        <small>${stats.totalPeople} personnes • ${stats.totalPhotos} photos</small>
-    `;
-    
-    // Ajouter l'animation CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    document.body.appendChild(notification);
-    
-    // Supprimer après 4 secondes
-    setTimeout(() => {
-        notification.style.animation = 'slideIn 0.3s ease-out reverse';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-            if (style.parentNode) {
-                style.parentNode.removeChild(style);
-            }
-        }, 300);
-    }, 4000);
 }
 
 /**
  * Copie le contenu dans le presse-papiers
  */
 async function copyToClipboard() {
-    const outputTextarea = document.getElementById('encrypted-output');
+    const output = document.getElementById('output-data');
     const copyBtn = document.getElementById('copy-btn');
     
     try {
-        await navigator.clipboard.writeText(outputTextarea.value);
+        await navigator.clipboard.writeText(output.value);
         
-        // Feedback visuel
         const originalText = copyBtn.textContent;
         copyBtn.textContent = '✅ Copié !';
         copyBtn.style.background = '#28a745';
@@ -243,8 +398,7 @@ async function copyToClipboard() {
         }, 2000);
         
     } catch (error) {
-        // Fallback pour les navigateurs plus anciens
-        outputTextarea.select();
+        output.select();
         document.execCommand('copy');
         
         copyBtn.textContent = '✅ Copié !';
@@ -254,24 +408,29 @@ async function copyToClipboard() {
     }
 }
 
-/**
- * Validation en temps réel du JSON
- */
+// Événements et initialisation
 document.addEventListener('DOMContentLoaded', function() {
+    // Validation en temps réel du JSON
     const jsonInput = document.getElementById('json-input');
     if (jsonInput) {
-        // Validation automatique avec un délai pour éviter les validations trop fréquentes
         let validationTimeout;
         jsonInput.addEventListener('input', function() {
             clearTimeout(validationTimeout);
             validationTimeout = setTimeout(validateJSON, 500);
         });
+
+        // Auto-validation lors du collage
+        jsonInput.addEventListener('paste', function() {
+            setTimeout(validateJSON, 100);
+        });
     }
-    
-    // Validation du mot de passe
+
+    // Validation du mot de passe en temps réel
     const passwordInput = document.getElementById('password-input');
     if (passwordInput) {
         passwordInput.addEventListener('input', function() {
+            checkGenerateButton();
+            
             const password = this.value;
             const minLength = 6;
             

@@ -3,88 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de Données Chiffrées</title>
-    <link rel="stylesheet" href="css/encrypt.css">
+    <title>Générateur de Jeu avec Images Locales Chiffrées</title>
+    <link rel="stylesheet" href="css/image-encryptor.css">
 </head>
 <body>
     <div class="container">
-        <h1>🔐 Générateur de Données Chiffrées</h1>
+        <h1>🔐 Générateur de Jeu avec Images Chiffrées</h1>
 
         <div class="info">
-            <strong>📋 Instructions :</strong>
-            <ol style="margin-top: 10px; padding-left: 20px;">
-                <li>Récupérez les liens directs de vos images Google Photos</li>
-                <li>Organisez-les dans le format JSON ci-dessous</li>
-                <li>Choisissez un mot de passe fort</li>
-                <li>Générez les données chiffrées</li>
-                <li>Copiez le résultat dans data/encrypted-data.js</li>
-            </ol>
+            <strong>📋 Nouvelle fonctionnalité :</strong><br>
+            Sélectionnez vos images locales et générez un jeu complètement autonome avec images chiffrées intégrées !
         </div>
 
         <div class="section">
-            <h2>1️⃣ Format des données JSON</h2>
-            <div class="example">
-                <strong>Exemple de structure :</strong>
-                <pre id="example-json">[
-  {
-    "name": "Alice Dupont",
-    "photos": [
-      "https://lh3.googleusercontent.com/d/VOTRE_ID_IMAGE_1",
-      "https://lh3.googleusercontent.com/d/VOTRE_ID_IMAGE_2"
-    ]
-  },
-  {
-    "name": "Bob Martin", 
-    "photos": [
-      "https://lh3.googleusercontent.com/d/VOTRE_ID_IMAGE_3",
-      "https://lh3.googleusercontent.com/d/VOTRE_ID_IMAGE_4"
-    ]
-  }
-]</pre>
+            <h2>1️⃣ JSON avec chemins d'images locales</h2>
+            <textarea id="json-input" placeholder='Collez ici votre JSON au format :
+[
+    {
+        "name": "Christopher",
+        "photos": [
+            "/images/images/003487930030250710.webp"
+        ]
+    },
+    {
+        "name": "Théo", 
+        "photos": [
+            "/images/images/003487930030250710-2.webp"
+        ]
+    }
+]'></textarea>
+
+            <div style="margin-top: 15px;">
+                <button class="btn btn-warning" onclick="fillExample()">📝 Utiliser l'exemple</button>
+                <button class="btn" onclick="validateJSON()">✅ Valider le JSON</button>
             </div>
-            <button class="btn btn-warning" onclick="fillExample()">📝 Utiliser cet exemple</button>
+
+            <div id="json-status"></div>
         </div>
 
         <div class="section">
-            <h2>2️⃣ Vos données JSON</h2>
-            <textarea id="json-input" placeholder="Collez ici votre JSON avec les données des personnes et liens des images..."></textarea>
-            <button class="btn" onclick="validateJSON()">✅ Valider le JSON</button>
-            <div id="json-status"></div>
+            <h2>2️⃣ Sélectionnez vos images</h2>
+            <div class="warning">
+                <strong>⚠️ Important :</strong> Les noms de fichiers dans votre JSON doivent correspondre exactement aux fichiers sélectionnés.
+            </div>
+            <input type="file" id="image-files" multiple accept="image/*" onchange="handleImageSelection()">
+            <div id="image-status"></div>
         </div>
 
         <div class="section">
             <h2>3️⃣ Mot de passe de chiffrement</h2>
             <input type="password" id="password-input" placeholder="Choisissez un mot de passe fort...">
             <div class="warning">
-                <strong>⚠️ Important :</strong> Ce mot de passe sera demandé à chaque utilisation du jeu. Choisissez-le fort mais mémorisable !
+                <strong>🔒 Sécurité :</strong> Ce mot de passe protègera vos images ET les données du jeu. Choisissez-le fort !
             </div>
         </div>
 
         <div class="section">
-            <h2>4️⃣ Générer les données chiffrées</h2>
-            <button class="btn btn-success" onclick="encryptData()">🔐 Chiffrer les données</button>
+            <h2>4️⃣ Générer le jeu complet</h2>
+            <button class="btn btn-success" onclick="generateGame()" id="generate-btn" disabled>
+                🎮 Générer le jeu avec images chiffrées
+            </button>
+            
+            <div class="progress-container" id="progress-container" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text" id="progress-text"></div>
+            </div>
+
+            <div id="generation-status"></div>
+        </div>
+
+        <div class="section">
+            <h2>5️⃣ Code JavaScript généré</h2>
             <div class="output-container">
-                <textarea id="encrypted-output" readonly placeholder="Les données chiffrées apparaîtront ici..."></textarea>
+                <textarea id="output-data" readonly placeholder="Le code JavaScript complet avec images chiffrées apparaîtra ici..."></textarea>
                 <button class="copy-btn" onclick="copyToClipboard()" style="display: none;" id="copy-btn">📋 Copier</button>
             </div>
         </div>
 
         <div class="section">
-            <h2>5️⃣ Instructions finales</h2>
+            <h2>6️⃣ Instructions finales</h2>
             <div class="info">
-                <strong>🔧 Étapes finales :</strong>
+                <strong>🚀 Déploiement :</strong>
                 <ol style="margin-top: 10px; padding-left: 20px;">
                     <li>Copiez le code JavaScript généré ci-dessus</li>
                     <li>Remplacez le contenu du fichier <code>data/encrypted-data.js</code></li>
+                    <li>Supprimez le dossier images de votre projet (plus nécessaire !)</li>
                     <li>Déployez sur GitHub Pages</li>
-                    <li>Partagez le lien et le mot de passe avec les personnes autorisées</li>
+                    <li>Partagez le lien et le mot de passe</li>
                 </ol>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
-    <script src="js/crypto.js"></script>
-    <script src="js/encrypt-tool.js"></script>
+    <script src="js/image-crypto.js"></script>
+    <script src="js/image-encryptor.js"></script>
 </body>
 </html>

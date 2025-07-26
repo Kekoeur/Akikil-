@@ -1,4 +1,4 @@
-/* Styles principaux pour le jeu "Qui est-ce ?" */
+/* Styles principaux pour le jeu "Qui est-ce ?" avec images circulaires */
 
 * {
     margin: 0;
@@ -139,28 +139,180 @@ h1 {
     transition: width 0.5s ease;
 }
 
+/* Container photo avec style circulaire */
 .photo-container {
     margin: 30px 0;
     position: relative;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     transition: transform 0.3s ease;
 }
 
 .photo-container:hover {
-    transform: scale(1.02);
+    transform: scale(1.05);
 }
 
+/* Image principale en cercle */
 #current-photo {
-    width: 100%;
-    max-width: 400px;
+    width: 300px;
     height: 300px;
     object-fit: cover;
-    border-radius: 15px;
+    border-radius: 50%;
+    border: 4px solid #667eea;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
     loading: lazy;
 }
 
+#current-photo:hover {
+    border-color: #5a67d8;
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+/* Indicateur de chargement circulaire */
+.image-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 300px;
+    height: 300px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 50%;
+    border: 4px dashed #667eea;
+    margin: 0 auto;
+    color: #667eea;
+    font-weight: 600;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+/* Animation de rotation pour le spinner */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Message d'erreur circulaire */
+#current-photo.error {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 4px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    font-size: 1rem;
+    color: #6c757d;
+    padding: 40px;
+    border-radius: 50%;
+    width: 300px;
+    height: 300px;
+    object-fit: initial;
+}
+
+/* Effet de pulsation pour l'image active */
+@keyframes pulse-circle {
+    0% { 
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        transform: scale(1.02);
+    }
+    100% { 
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        transform: scale(1);
+    }
+}
+
+/* Animation lors du chargement d'une nouvelle image */
+#current-photo.loading {
+    animation: pulse-circle 2s ease-in-out infinite;
+}
+
+/* Variantes de couleurs pour le cercle selon le score */
+.photo-container.excellent #current-photo {
+    border-color: #48bb78;
+    box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);
+}
+
+.photo-container.good #current-photo {
+    border-color: #4299e1;
+    box-shadow: 0 10px 30px rgba(66, 153, 225, 0.3);
+}
+
+.photo-container.average #current-photo {
+    border-color: #ed8936;
+    box-shadow: 0 10px 30px rgba(237, 137, 54, 0.3);
+}
+
+.photo-container.poor #current-photo {
+    border-color: #f56565;
+    box-shadow: 0 10px 30px rgba(245, 101, 101, 0.3);
+}
+
+/* Animation d'entrée pour la photo */
+@keyframes fadeInCircle {
+    from { 
+        opacity: 0; 
+        transform: scale(0.8) rotate(-10deg);
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+#current-photo {
+    animation: fadeInCircle 0.6s ease-out;
+}
+
+/* Effet de survol amélioré */
+.photo-container:hover #current-photo {
+    filter: brightness(1.1) saturate(1.1);
+}
+
+/* Bordure dégradée pour un effet premium */
+.photo-container::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 312px;
+    height: 312px;
+    background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    animation: rotate 10s linear infinite;
+}
+
+.photo-container:hover::before {
+    opacity: 0.8;
+}
+
+@keyframes rotate {
+    from { transform: translateX(-50%) rotate(0deg); }
+    to { transform: translateX(-50%) rotate(360deg); }
+}
+
+/* Options de réponse */
 .options-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -271,12 +423,7 @@ h1 {
     margin-right: 10px;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Responsive Design */
+/* Responsive Design pour images circulaires */
 @media (max-width: 600px) {
     .game-container {
         padding: 20px;
@@ -294,8 +441,34 @@ h1 {
         margin: 20px 0;
     }
 
-    #current-photo {
+    #current-photo, 
+    .image-loading {
+        width: 250px;
         height: 250px;
+    }
+    
+    .image-loading {
+        padding: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border-width: 3px;
+    }
+    
+    #current-photo.error {
+        width: 250px;
+        height: 250px;
+        padding: 30px;
+        font-size: 0.9rem;
+    }
+
+    .photo-container::before {
+        width: 262px;
+        height: 262px;
+        top: -6px;
     }
 }
 
@@ -309,5 +482,34 @@ h1 {
     .option-btn {
         padding: 12px 20px;
         font-size: 1rem;
+    }
+
+    #current-photo, 
+    .image-loading {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .loading-spinner {
+        width: 30px;
+        height: 30px;
+        margin-bottom: 10px;
+    }
+    
+    #current-photo.error {
+        width: 200px;
+        height: 200px;
+        padding: 20px;
+        font-size: 0.8rem;
+    }
+    
+    .photo-container:hover {
+        transform: scale(1.02);
+    }
+
+    .photo-container::before {
+        width: 212px;
+        height: 212px;
+        top: -6px;
     }
 }

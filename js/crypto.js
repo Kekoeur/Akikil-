@@ -1,18 +1,17 @@
 /**
- * Fonctions de chiffrement et déchiffrement
- * Utilise un algorithme XOR simple avec encodage Base64
+ * Fonctions de chiffrement/déchiffrement pour images et données
+ * Version étendue pour gérer les images base64
  */
 
 /**
- * Chiffre des données JSON avec un mot de passe
- * @param {Object} data - Les données à chiffrer
+ * Chiffre des données (texte ou JSON) avec un mot de passe
+ * @param {string|Object} data - Les données à chiffrer
  * @param {string} password - Le mot de passe de chiffrement
  * @returns {string} - Les données chiffrées en Base64
  */
 function encrypt(data, password) {
     try {
-        // Convertir les données en chaîne JSON
-        const jsonString = JSON.stringify(data);
+        const jsonString = typeof data === 'string' ? data : JSON.stringify(data);
         let encrypted = '';
         
         // Chiffrement XOR avec le mot de passe
@@ -33,7 +32,7 @@ function encrypt(data, password) {
  * Déchiffre des données avec un mot de passe
  * @param {string} encryptedData - Les données chiffrées en Base64
  * @param {string} password - Le mot de passe de déchiffrement
- * @returns {Object} - Les données déchiffrées
+ * @returns {Object|string} - Les données déchiffrées
  */
 function decrypt(encryptedData, password) {
     try {
@@ -48,30 +47,54 @@ function decrypt(encryptedData, password) {
             );
         }
         
-        // Parser le JSON
-        return JSON.parse(decrypted);
+        // Essayer de parser en JSON, sinon retourner la chaîne
+        try {
+            return JSON.parse(decrypted);
+        } catch {
+            return decrypted; // Pour les images base64
+        }
     } catch (error) {
         throw new Error('Déchiffrement échoué - mot de passe incorrect ou données corrompues');
     }
 }
 
 /**
- * Génère une clé de hachage simple pour validation
+ * Déchiffre spécifiquement une image et retourne l'URL data:
+ * @param {string} encryptedImage - L'image chiffrée
  * @param {string} password - Le mot de passe
- * @returns {string} - Hash simple du mot de passe
+ * @returns {string} - URL data: prête pour l'attribut src
  */
-function simpleHash(password) {
-    let hash = 0;
-    for (let i = 0; i < password.length; i++) {
-        const char = password.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convertir en 32-bit integer
+function decryptImage(encryptedImage, password) {
+    try {
+        const decryptedImage = decrypt(encryptedImage, password);
+        
+        // Vérifier que c'est bien une URL data:
+        if (typeof decryptedImage === 'string' && decryptedImage.startsWith('data:')) {
+            return decryptedImage;
+        } else {
+            throw new Error('Format d\'image invalide');
+        }
+    } catch (error) {
+        throw new Error('Erreur déchiffrement image: ' + error.message);
     }
-    return hash.toString(36);
 }
 
 /**
- * Valide le format des données avant chiffrement
+ * Convertit un fichier en Base64
+ * @param {File} file - Le fichier à convertir
+ * @returns {Promise<string>} - URL data: base64
+ */
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+/**
+ * Valide le format des données de jeu
  * @param {Array} data - Les données à valider
  * @returns {Object} - Résultat de la validation
  */
@@ -114,11 +137,11 @@ function validateGameData(data) {
                 result.valid = false;
                 result.errors.push(`Personne ${index + 1}: aucune photo fournie`);
             } else {
-                // Valider chaque URL de photo
+                // Valider chaque photo
                 person.photos.forEach((photo, photoIndex) => {
                     if (typeof photo !== 'string' || photo.trim() === '') {
                         result.valid = false;
-                        result.errors.push(`Personne ${index + 1}, photo ${photoIndex + 1}: URL invalide`);
+                        result.errors.push(`Personne ${index + 1}, photo ${photoIndex + 1}: données invalides`);
                     }
                 });
                 result.stats.totalPhotos += person.photos.length;
@@ -141,4 +164,19 @@ function validateGameData(data) {
     }
 
     return result;
+}
+
+/**
+ * Génère une clé de hachage simple pour validation
+ * @param {string} password - Le mot de passe
+ * @returns {string} - Hash simple du mot de passe
+ */
+function simpleHash(password) {
+    let hash = 0;
+    for (let i = 0; i < password.length; i++) {
+        const char = password.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convertir en 32-bit integer
+    }
+    return hash.toString(36);
 }
