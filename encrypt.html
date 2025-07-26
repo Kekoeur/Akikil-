@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Données Chiffrées</title>
+    <link rel="stylesheet" href="css/encrypt.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Générateur de Données Chiffrées</h1>
+
+        <div class="info">
+            <strong>📋 Instructions :</strong>
+            <ol style="margin-top: 10px; padding-left: 20px;">
+                <li>Récupérez les liens directs de vos images Google Photos</li>
+                <li>Organisez-les dans le format JSON ci-dessous</li>
+                <li>Choisissez un mot de passe fort</li>
+                <li>Générez les données chiffrées</li>
+                <li>Copiez le résultat dans data/encrypted-data.js</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>1️⃣ Format des données JSON</h2>
+            <div class="example">
+                <strong>Exemple de structure :</strong>
+                <pre id="example-json">[
+  {
+    "name": "Alice Dupont",
+    "photos": [
+      "https://lh3.googleusercontent.com/d/VOTRE_ID_IMAGE_1",
+      "https://lh3.googleusercontent.com/d/VOTRE_ID_IMAGE_2"
+    ]
+  },
+  {
+    "name": "Bob Martin", 
+    "photos": [
+      "https://lh3.googleusercontent.com/d/VOTRE_ID_IMAGE_3",
+      "https://lh3.googleusercontent.com/d/VOTRE_ID_IMAGE_4"
+    ]
+  }
+]</pre>
+            </div>
+            <button class="btn btn-warning" onclick="fillExample()">📝 Utiliser cet exemple</button>
+        </div>
+
+        <div class="section">
+            <h2>2️⃣ Vos données JSON</h2>
+            <textarea id="json-input" placeholder="Collez ici votre JSON avec les données des personnes et liens des images..."></textarea>
+            <button class="btn" onclick="validateJSON()">✅ Valider le JSON</button>
+            <div id="json-status"></div>
+        </div>
+
+        <div class="section">
+            <h2>3️⃣ Mot de passe de chiffrement</h2>
+            <input type="password" id="password-input" placeholder="Choisissez un mot de passe fort...">
+            <div class="warning">
+                <strong>⚠️ Important :</strong> Ce mot de passe sera demandé à chaque utilisation du jeu. Choisissez-le fort mais mémorisable !
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4️⃣ Générer les données chiffrées</h2>
+            <button class="btn btn-success" onclick="encryptData()">🔐 Chiffrer les données</button>
+            <div class="output-container">
+                <textarea id="encrypted-output" readonly placeholder="Les données chiffrées apparaîtront ici..."></textarea>
+                <button class="copy-btn" onclick="copyToClipboard()" style="display: none;" id="copy-btn">📋 Copier</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>5️⃣ Instructions finales</h2>
+            <div class="info">
+                <strong>🔧 Étapes finales :</strong>
+                <ol style="margin-top: 10px; padding-left: 20px;">
+                    <li>Copiez le code JavaScript généré ci-dessus</li>
+                    <li>Remplacez le contenu du fichier <code>data/encrypted-data.js</code></li>
+                    <li>Déployez sur GitHub Pages</li>
+                    <li>Partagez le lien et le mot de passe avec les personnes autorisées</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/crypto.js"></script>
+    <script src="js/encrypt-tool.js"></script>
+</body>
+</html>

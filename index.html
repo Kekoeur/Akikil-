@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qui est-ce ? - Jeu de Devinette Sécurisé</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div id="password-screen">
+            <h1>🔐 Accès Sécurisé</h1>
+            <div class="info-box">
+                <strong>🛡️ Jeu Protégé</strong><br>
+                Entrez le mot de passe pour déchiffrer les données et accéder au jeu.
+            </div>
+            <div class="password-container">
+                <input 
+                    type="password" 
+                    id="password-input" 
+                    class="password-input" 
+                    placeholder="Mot de passe requis..." 
+                    onkeypress="handlePasswordKeyPress(event)"
+                >
+                <button class="unlock-btn" onclick="unlockGame()">
+                    🔓 Déverrouiller le jeu
+                </button>
+                <div id="password-error" class="error-message" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div id="game-screen" style="display: none;">
+            <h1>🎯 Qui est-ce ?</h1>
+            <div class="score">
+                Score: <span id="score">0</span> / <span id="total">0</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            
+            <div class="photo-container">
+                <img id="current-photo" alt="Photo mystère">
+            </div>
+            
+            <div class="options-container" id="options"></div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <button class="next-btn" id="next-btn" onclick="nextQuestion()" style="display: none;">
+                Question suivante ➡️
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="data/encrypted-data-drive.js"></script>
+    <script src="js/crypto.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
