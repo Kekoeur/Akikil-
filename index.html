@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AkikilèleQ 🍑</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/retro-style.css">
+    <link rel="stylesheet" href="css/avatar-system.css">
 </head>
 <body>
     <div class="game-container">
@@ -56,8 +57,93 @@
         </div>
     </div>
 
+    <!-- Menu paramètres (optionnel) -->
+    <div id="settings-menu" style="display: none; position: fixed; bottom: 20px; right: 20px;">
+        <button onclick="changeAvatar()" style="
+            background: linear-gradient(45deg, var(--neon-purple), var(--neon-pink));
+            color: white; border: 2px solid var(--neon-purple);
+            padding: 10px 15px; border-radius: 10px;
+            font-family: 'Orbitron', monospace; font-weight: 700;
+            cursor: pointer; margin: 5px;
+            box-shadow: 0 0 10px var(--neon-purple);
+        ">
+            🎭 Changer d'avatar
+        </button>
+        <br>
+        <button onclick="resetPlayerProfile()" style="
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-purple));
+            color: white; border: 2px solid var(--neon-pink);
+            padding: 10px 15px; border-radius: 10px;
+            font-family: 'Orbitron', monospace; font-weight: 700;
+            cursor: pointer; margin: 5px;
+            box-shadow: 0 0 10px var(--neon-pink);
+        ">
+            🔄 Reset profil
+        </button>
+        <br>
+        <button onclick="exportProfile()" style="
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-cyan));
+            color: var(--dark-bg); border: 2px solid var(--neon-green);
+            padding: 10px 15px; border-radius: 10px;
+            font-family: 'Orbitron', monospace; font-weight: 700;
+            cursor: pointer; margin: 5px;
+            box-shadow: 0 0 10px var(--neon-green);
+        ">
+            💾 Export profil
+        </button>
+        <br>
+        <input type="file" id="import-profile" accept=".json" onchange="importProfile(event)" style="display: none;">
+        <button onclick="document.getElementById('import-profile').click()" style="
+            background: linear-gradient(45deg, var(--neon-yellow), var(--retro-orange));
+            color: var(--dark-bg); border: 2px solid var(--neon-yellow);
+            padding: 10px 15px; border-radius: 10px;
+            font-family: 'Orbitron', monospace; font-weight: 700;
+            cursor: pointer; margin: 5px;
+            box-shadow: 0 0 10px var(--neon-yellow);
+        ">
+            📂 Import profil
+        </button>
+    </div>
+
+    <!-- Bouton pour afficher/masquer les paramètres -->
+    <button id="settings-toggle" onclick="toggleSettings()" style="
+        position: fixed; bottom: 20px; left: 20px;
+        background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple));
+        color: white; border: 2px solid var(--neon-cyan);
+        padding: 15px; border-radius: 50%;
+        font-size: 1.5rem; cursor: pointer;
+        box-shadow: 0 0 15px var(--neon-cyan);
+        z-index: 1000;
+    ">
+        ⚙️
+    </button>
+
     <!-- Scripts -->
     <script src="data/encrypted-data.js"></script>
+    <script src="js/avatar-system.js"></script>
     <script src="js/game.js"></script>
+
+    <script>
+        // Fonction pour toggle les paramètres
+        function toggleSettings() {
+            const menu = document.getElementById('settings-menu');
+            const toggle = document.getElementById('settings-toggle');
+            
+            if (menu.style.display === 'none') {
+                menu.style.display = 'block';
+                toggle.textContent = '✖️';
+                toggle.style.background = 'linear-gradient(45deg, var(--neon-pink), var(--neon-purple))';
+            } else {
+                menu.style.display = 'none';
+                toggle.textContent = '⚙️';
+                toggle.style.background = 'linear-gradient(45deg, var(--neon-cyan), var(--neon-purple))';
+            }
+        }
+
+        // Masquer le menu paramètres initialement au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('settings-menu').style.display = 'none';
+        });
+    </script>
 </body>
 </html>

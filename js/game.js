@@ -1,5 +1,5 @@
 /**
- * Logique principale du jeu "Qui est-ce ?" avec support des images chiffrées
+ * Logique principale du jeu "Qui est-ce ?" avec système d'avatars et badges
  */
 
 // Variables globales du jeu
@@ -8,6 +8,9 @@ let currentQuestion = 0;
 let score = 0;
 let gameQuestions = [];
 let currentPassword = '';
+let gameStartTime = 0;
+let questionStartTime = 0;
+let questionTimes = [];
 
 /**
  * Gestionnaire d'événement pour l'appui sur Entrée dans le champ mot de passe
@@ -59,6 +62,11 @@ async function unlockGame() {
         // Sauvegarder le mot de passe pour déchiffrer les images
         currentPassword = password;
 
+        // Recharger les avatars maintenant que nous avons les données
+        if (typeof loadGameAvatars === 'function') {
+            loadGameAvatars();
+        }
+
         // Démarrer le jeu
         startGame();
         
@@ -87,6 +95,39 @@ function showError(message) {
  */
 function startGame() {
     try {
+        // Sauvegarder le mot de passe pour déchiffrer les images
+        currentPassword = password;
+
+        // Recharger les avatars maintenant que nous avons les données
+        if (typeof loadGameAvatars === 'function') {
+            loadGameAvatars();
+        }
+
+        // Basculer vers l'écran de jeu
+        document.getElementById('password-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        document.getElementById('game-screen').classList.add('game-screen-enter');
+        
+        // Vérifier si le joueur a besoin de choisir un avatar
+        if (typeof checkAvatarSelectionNeeded === 'function' && checkAvatarSelectionNeeded()) {
+            // L'avatar sera sélectionné, le jeu continuera après
+            return;
+        }
+        
+        // Si l'avatar existe déjà, démarrer directement le jeu
+        continueGameAfterAvatar();
+        
+    } catch (error) {
+        console.error('Erreur lors du démarrage du jeu:', error);
+        showError('Erreur lors du démarrage du jeu');
+    }
+}
+
+/**
+ * Continue le jeu après la sélection d'avatar
+ */
+function continueGameAfterAvatar() {
+    try {
         // Créer toutes les questions possibles
         gameQuestions = [];
         gameData.forEach(person => {
@@ -104,10 +145,8 @@ function startGame() {
         // Initialiser les variables du jeu
         currentQuestion = 0;
         score = 0;
-
-        // Basculer vers l'écran de jeu
-        document.getElementById('password-screen').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'block';
+        gameStartTime = Date.now();
+        questionTimes = [];
         
         // Afficher la première question
         showQuestion();
@@ -128,6 +167,7 @@ async function showQuestion() {
     }
 
     const question = gameQuestions[currentQuestion];
+    questionStartTime = Date.now();
     
     // Afficher l'indicateur de chargement
     showImageLoading(true);
@@ -275,6 +315,10 @@ function selectAnswer(selected, correct) {
     const feedback = document.getElementById('feedback');
     const photoElement = document.getElementById('current-photo');
     
+    // Calculer le temps de réponse
+    const questionTime = Date.now() - questionStartTime;
+    questionTimes.push(questionTime);
+    
     // Désactiver tous les boutons et appliquer les styles
     buttons.forEach(button => {
         button.disabled = true;
@@ -295,13 +339,26 @@ function selectAnswer(selected, correct) {
         // Effet de succès sur l'image
         photoElement.style.filter = 'brightness(1.2) saturate(1.3) hue-rotate(10deg)';
         photoElement.style.transform = 'scale(1.05)';
+        
+        // Mettre à jour la streak
+        if (typeof playerProfile !== 'undefined') {
+            playerProfile.stats.streak++;
+            if (playerProfile.stats.streak > playerProfile.stats.bestStreak) {
+                playerProfile.stats.bestStreak = playerProfile.stats.streak;
+            }
+        }
     } else {
-        feedback.textContent = `❌ Incorrect ! `;//C'était ${correct}.`;
+        feedback.textContent = `❌ Incorrect !`;
         feedback.className = 'feedback incorrect';
         
         // Effet d'erreur sur l'image
         photoElement.style.filter = 'brightness(0.7) saturate(0.5) hue-rotate(-10deg)';
         photoElement.style.transform = 'scale(0.95)';
+        
+        // Réinitialiser la streak
+        if (typeof playerProfile !== 'undefined') {
+            playerProfile.stats.streak = 0;
+        }
     }
 
     // Remettre l'image normale après 2 secondes
@@ -342,41 +399,112 @@ function resetQuestionUI() {
  */
 function endGame() {
     const percentage = Math.round((score / gameQuestions.length) * 100);
+    const totalGameTime = Date.now() - gameStartTime;
+    const avgQuestionTime = questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length;
+    
+    // Mettre à jour les statistiques du joueur
+    if (typeof updatePlayerStats === 'function') {
+        updatePlayerStats(score, gameQuestions.length, totalGameTime);
+    }
+    
     let message = '';
     let emoji = '';
     
     // Déterminer le message en fonction du score
     if (percentage >= 90) {
-        message = 'Eh bien mon coquin ! On sait ce que tu regardais pendant le week-end…';
+        message = "Eh bien mon coquin ! On sait ce que tu regardais pendant le week-end…";
         emoji = '🏆🍑';
     } else if (percentage >= 70) {
-        message = 'Pas tout à fait expert, mais t’as l’instinct du chasseur...';
+        message = "Pas tout à fait expert, mais t'as l'instinct du chasseur...";
         emoji = '🎯🍑';
     } else if (percentage >= 50) {
-        message = 'T’as maté, mais t’as pas retenu !';
+        message = "T'as maté, mais t'as pas retenu !";
         emoji = '👀🍑';
     } else {
-        message = 'Soit t’as jamais regardé, soit tu fais semblant…';
+        message = "Soit t'as jamais regardé, soit tu fais semblant…";
         emoji = '👀❓🍑';
     }
+
+    // Statistiques du jeu
+    const statsHtml = `
+        <div style="background: rgba(26, 26, 46, 0.8); border: 1px solid var(--neon-cyan); border-radius: 10px; padding: 15px; margin: 20px 0; font-size: 0.9rem;">
+            <div style="color: var(--neon-yellow); margin-bottom: 10px;">📊 Statistiques de la partie</div>
+            <div style="color: var(--neon-cyan);">⏱️ Temps total: ${Math.round(totalGameTime / 1000)}s</div>
+            <div style="color: var(--neon-cyan);">⚡ Temps moyen/question: ${Math.round(avgQuestionTime / 1000)}s</div>
+            <div style="color: var(--neon-cyan);">🎯 Questions réussies: ${score}/${gameQuestions.length}</div>
+        </div>
+    `;
 
     // Afficher l'écran de fin
     document.getElementById('game-screen').innerHTML = `
         <h1>🎯 Jeu terminé !</h1>
         <div style="font-size: 4rem; margin: 30px 0;">${emoji}</div>
-        <div style="font-size: 3rem; margin: 20px 0; color: #667eea; font-weight: bold;">
+        <div style="font-size: 3rem; margin: 20px 0; color: var(--neon-cyan); font-weight: bold; text-shadow: 0 0 20px var(--neon-cyan);">
             ${percentage}%
         </div>
-        <div style="font-size: 1.5rem; margin: 20px 0; color: #555;">
+        <div style="font-size: 1.5rem; margin: 20px 0; color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow);">
             Score final: <strong>${score} / ${gameQuestions.length}</strong>
         </div>
-        <div style="font-size: 1.2rem; margin: 30px 0; color: #666; line-height: 1.5;">
+        ${statsHtml}
+        <div style="font-size: 1.2rem; margin: 30px 0; color: var(--neon-green); line-height: 1.5; text-shadow: 0 0 8px var(--neon-green);">
             ${message}
         </div>
-        <button class="unlock-btn" onclick="location.reload()" style="margin-top: 30px;">
-            🔄 Jouer à nouveau
-        </button>
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
+            <button class="unlock-btn" onclick="location.reload()" style="margin: 0; width: auto;">
+                🔄 Jouer à nouveau
+            </button>
+            <button class="unlock-btn" onclick="showPlayerStats()" style="margin: 0; width: auto; background: linear-gradient(45deg, var(--neon-purple), var(--neon-pink));">
+                📊 Mes statistiques
+            </button>
+        </div>
     `;
+    
+    // Créer des particules de fin de jeu
+    if (typeof createCelebrationParticles === 'function') {
+        createCelebrationParticles();
+    }
+}
+
+/**
+ * Affiche les statistiques détaillées du joueur
+ */
+function showPlayerStats() {
+    if (typeof getFormattedStats !== 'function') return;
+    
+    const stats = getFormattedStats();
+    const badges = typeof getAvailableBadges === 'function' ? getAvailableBadges() : [];
+    
+    const statsPopup = document.createElement('div');
+    statsPopup.className = 'achievement-popup';
+    statsPopup.style.transform = 'translate(-50%, -50%) scale(1)';
+    statsPopup.style.maxWidth = '90vw';
+    statsPopup.style.maxHeight = '90vh';
+    statsPopup.style.overflow = 'auto';
+    statsPopup.innerHTML = `
+        <h3>📊 Vos Statistiques</h3>
+        <div style="text-align: left; margin: 20px 0;">
+            <div style="color: var(--neon-cyan); margin: 8px 0;">🎮 Parties jouées: <strong>${stats.gamesPlayed}</strong></div>
+            <div style="color: var(--neon-cyan); margin: 8px 0;">🏆 Meilleur score: <strong>${stats.bestScore}</strong></div>
+            <div style="color: var(--neon-cyan); margin: 8px 0;">📈 Score moyen: <strong>${stats.averageScore}</strong></div>
+            <div style="color: var(--neon-cyan); margin: 8px 0;">💯 Parties parfaites: <strong>${stats.perfectGames}</strong></div>
+            <div style="color: var(--neon-cyan); margin: 8px 0;">✨ Taux de réussite: <strong>${stats.successRate}</strong></div>
+        </div>
+        ${badgesHtml}
+        <div style="margin-top: 25px;">
+            <button class="btn-cancel" onclick="this.parentElement.remove()" style="margin: 0;">
+                Fermer
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(statsPopup);
+    
+    // Supprimer automatiquement après 10 secondes
+    setTimeout(() => {
+        if (statsPopup.parentElement) {
+            statsPopup.remove();
+        }
+    }, 10000);
 }
 
 /**
@@ -520,3 +648,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, true);
 });
+
+// Exposer les fonctions globalement
+window.showPlayerStats = showPlayerStats;
+window.continueGameAfterAvatar = continueGameAfterAvatar;
