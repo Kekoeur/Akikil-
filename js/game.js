@@ -62,10 +62,10 @@ async function unlockGame() {
         // Sauvegarder le mot de passe pour déchiffrer les images
         currentPassword = password;
 
-        // Recharger les avatars maintenant que nous avons les données
-        if (typeof loadGameAvatars === 'function') {
-            loadGameAvatars();
-        }
+        // SUPPRIMER CES LIGNES QUI CAUSENT L'ERREUR :
+        // if (typeof loadGameAvatars === 'function') {
+        //     loadGameAvatars();
+        // }
 
         // Démarrer le jeu
         startGame();
@@ -90,32 +90,14 @@ function showError(message) {
     errorDiv.style.display = 'block';
 }
 
-/**
- * Démarre le jeu une fois les données déchiffrées
- */
 function startGame() {
     try {
-        // Sauvegarder le mot de passe pour déchiffrer les images
-        currentPassword = password;
-
-        // Recharger les avatars maintenant que nous avons les données
-        if (typeof loadGameAvatars === 'function') {
-            loadGameAvatars();
-        }
-
-        // Basculer vers l'écran de jeu
+        // Basculer vers l'écran de sélection d'avatar
         document.getElementById('password-screen').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'block';
-        document.getElementById('game-screen').classList.add('game-screen-enter');
+        document.getElementById('avatar-screen').style.display = 'block';
         
-        // Vérifier si le joueur a besoin de choisir un avatar
-        if (typeof checkAvatarSelectionNeeded === 'function' && checkAvatarSelectionNeeded()) {
-            // L'avatar sera sélectionné, le jeu continuera après
-            return;
-        }
-        
-        // Si l'avatar existe déjà, démarrer directement le jeu
-        continueGameAfterAvatar();
+        // Afficher la sélection d'avatar
+        showAvatarSelection();
         
     } catch (error) {
         console.error('Erreur lors du démarrage du jeu:', error);

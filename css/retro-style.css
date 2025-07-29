@@ -33,7 +33,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    animation: scanlines 0.1s infinite linear;
+    /* animation: scanlines 0.1s infinite linear; */
     overflow-x: hidden;
 }
 
@@ -74,7 +74,7 @@ body::before {
     text-align: center;
     max-width: 700px;
     width: 100%;
-    animation: containerGlow 3s ease-in-out infinite alternate;
+    /* animation: containerGlow 3s ease-in-out infinite alternate; */
     position: relative;
 }
 
@@ -127,7 +127,7 @@ h1 {
         0 0 10px var(--neon-cyan),
         0 0 20px var(--neon-cyan),
         0 0 30px var(--neon-cyan);
-    animation: neonFlicker 2s infinite alternate;
+    /* animation: neonFlicker 2s infinite alternate; */
     position: relative;
 }
 
@@ -187,7 +187,6 @@ h1::before {
     box-shadow: 
         0 0 10px var(--neon-purple),
         inset 0 0 10px rgba(138, 43, 226, 0.2);
-    text-transform: uppercase;
     letter-spacing: 2px;
 }
 
@@ -254,7 +253,7 @@ h1::before {
     opacity: 0.7;
     cursor: not-allowed;
     transform: none;
-    animation: pulse 1s infinite;
+    /*animation: pulse 1s infinite;*/
 }
 
 @keyframes pulse {
@@ -268,7 +267,7 @@ h1::before {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    animation: errorGlow 0.5s ease-in-out infinite alternate;
+    /* animation: errorGlow 0.5s ease-in-out infinite alternate; */
     text-shadow: 0 0 10px var(--neon-pink);
 }
 
@@ -298,7 +297,7 @@ h1::before {
     text-transform: uppercase;
     letter-spacing: 2px;
     text-shadow: 0 0 10px var(--neon-yellow);
-    animation: scoreFlicker 1.5s infinite alternate;
+    /* animation: scoreFlicker 1.5s infinite alternate; */
 }
 
 @keyframes scoreFlicker {
@@ -339,7 +338,7 @@ h1::before {
     border-radius: 15px;
     transition: width 1s ease;
     box-shadow: 0 0 15px var(--neon-cyan);
-    animation: progressGlow 2s infinite alternate;
+    /* animation: progressGlow 2s infinite alternate; */
     position: relative;
 }
 
@@ -387,7 +386,7 @@ h1::before {
         0 0 30px var(--neon-pink),
         0 0 60px rgba(255, 0, 128, 0.7),
         inset 0 0 30px rgba(255, 0, 128, 0.2);
-    animation-duration: 2s;
+    /* animation-duration: 2s; */
 }
 
 /* Bordures néon multiples */
@@ -403,7 +402,7 @@ h1::before {
     border-radius: 50%;
     z-index: -1;
     opacity: 0.8;
-    animation: borderRotate 3s linear infinite;
+    /* animation: borderRotate 3s linear infinite; */
 }
 
 .photo-container::after {
@@ -418,7 +417,7 @@ h1::before {
     border-radius: 50%;
     z-index: -2;
     opacity: 0.4;
-    animation: borderRotate 5s linear infinite reverse;
+    /* animation: borderRotate 5s linear infinite reverse; */
 }
 
 @keyframes borderRotate {
@@ -443,7 +442,7 @@ h1::before {
     text-align: center;
     padding: 20px;
     box-sizing: border-box;
-    animation: loadingPulse 1s infinite alternate;
+    /* animation: loadingPulse 1s infinite alternate; */
 }
 
 @keyframes loadingPulse {
@@ -466,7 +465,7 @@ h1::before {
     border-top: 6px solid var(--neon-cyan);
     border-right: 6px solid var(--neon-pink);
     border-radius: 50%;
-    animation: spinnerRetro 1s linear infinite;
+    /* animation: spinnerRetro 1s linear infinite; */
     margin-bottom: 20px;
 }
 
@@ -557,7 +556,7 @@ h1::before {
     border-color: var(--neon-green);
     color: var(--neon-green);
     box-shadow: 0 0 25px var(--neon-green);
-    animation: correctPulse 0.6s ease-in-out;
+    /* animation: correctPulse 0.6s ease-in-out; */
 }
 
 .option-btn.incorrect {
@@ -565,7 +564,7 @@ h1::before {
     border-color: var(--neon-pink);
     color: var(--neon-pink);
     box-shadow: 0 0 25px var(--neon-pink);
-    animation: incorrectShake 0.6s ease-in-out;
+    /* animation: incorrectShake 0.6s ease-in-out; */
 }
 
 @keyframes correctPulse {
@@ -594,13 +593,13 @@ h1::before {
 .feedback.correct {
     color: var(--neon-green);
     text-shadow: 0 0 20px var(--neon-green);
-    animation: correctBounce 0.8s ease-out;
+    /* animation: correctBounce 0.8s ease-out; */
 }
 
 .feedback.incorrect {
     color: var(--neon-pink);
     text-shadow: 0 0 20px var(--neon-pink);
-    animation: incorrectBounce 0.8s ease-out;
+    /* animation: incorrectBounce 0.8s ease-out; */
 }
 
 @keyframes correctBounce {
@@ -650,7 +649,7 @@ h1::before {
     border: 4px solid rgba(0, 255, 255, 0.3);
     border-top: 4px solid var(--neon-cyan);
     border-radius: 50%;
-    animation: retroSpin 1s linear infinite;
+    /* animation: retroSpin 1s linear infinite; */
     margin-right: 15px;
 }
 
@@ -661,7 +660,7 @@ h1::before {
 
 /* Effets spéciaux pour les transitions */
 .game-screen-enter {
-    animation: screenSlideIn 1s ease-out;
+    /* animation: screenSlideIn 1s ease-out; */
 }
 
 @keyframes screenSlideIn {
@@ -756,7 +755,7 @@ h1::before {
         radial-gradient(2px 2px at 160px 30px, var(--neon-purple), transparent);
     background-repeat: repeat;
     background-size: 200px 100px;
-    animation: particlesFloat 20s linear infinite;
+    /* animation: particlesFloat 20s linear infinite; */
     opacity: 0.3;
     pointer-events: none;
     border-radius: 20px;

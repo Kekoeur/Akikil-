@@ -70,69 +70,156 @@ const BADGES = {
 function initAvatarSystem() {
     // Charger le profil sauvegardé
     loadPlayerProfile();
-    
-    // Toujours afficher les infos du joueur s'il a un profil
-    if (playerProfile.name && playerProfile.avatar) {
-        displayPlayerInfo();
-        startParticleSystem();
-    }
+    // Ne pas afficher automatiquement les infos - on attend le bon moment
 }
+
+/**
+ * Charge des avatars par défaut (sans avoir besoin des données du jeu)
+ */
+function loadDefaultAvatars() {
+    const container = document.getElementById('game-avatars');
+    container.innerHTML = '';
+    
+    // Ajouter une option pour créer un avatar personnalisé
+    const createNew = document.createElement('div');
+    createNew.className = 'avatar-option create-new';
+    createNew.innerHTML = '+';
+    createNew.title = 'Créer un avatar personnalisé';
+    createNew.onclick = () => switchAvatarTab('custom');
+    container.appendChild(createNew);
+    
+    // Créer quelques avatars par défaut avec des couleurs
+    const defaultAvatars = [
+        { name: 'Joueur Bleu', color: '#4299e1', letter: 'J' },
+        { name: 'Joueur Rouge', color: '#f56565', letter: 'J' },
+        { name: 'Joueur Vert', color: '#48bb78', letter: 'J' },
+        { name: 'Joueur Violet', color: '#9f7aea', letter: 'J' },
+        { name: 'Joueur Orange', color: '#ed8936', letter: 'J' },
+        { name: 'Joueur Rose', color: '#ed64a6', letter: 'J' }
+    ];
+    
+    defaultAvatars.forEach((avatar, index) => {
+        const avatarOption = document.createElement('div');
+        avatarOption.className = 'avatar-option';
+        avatarOption.style.backgroundColor = avatar.color;
+        avatarOption.innerHTML = `<div style="color: white; font-weight: bold; text-align: center; line-height: 74px; font-size: 1.2rem;">${avatar.letter}</div>`;
+        avatarOption.title = avatar.name;
+        avatarOption.onclick = () => selectDefaultAvatar(avatar.name, avatar.color, avatar.letter);
+        container.appendChild(avatarOption);
+    });
+}
+
+/**
+ * Sélectionne un avatar par défaut
+ */
+function selectDefaultAvatar(name, bgColor, letter) {
+    // Marquer comme sélectionné
+    document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('selected'));
+    event.target.classList.add('selected');
+    
+    // Sauvegarder le profil
+    playerProfile.name = name;
+    playerProfile.avatar = {
+        type: 'default',
+        bgColor: bgColor,
+        letter: letter,
+        name: name
+    };
+    
+    savePlayerProfile();
+    
+    // Activer le bouton continuer
+    document.getElementById('continue-btn').disabled = false;
+}
+
+/**
+ * Continue vers l'écran de mot de passe
+ */
+function continueToPassword() {
+    if (!playerProfile.name || !playerProfile.avatar) {
+        alert('Veuillez d\'abord choisir un avatar !');
+        return;
+    }
+    
+    document.getElementById('avatar-screen').style.display = 'none';
+    document.getElementById('password-screen').style.display = 'block';
+    displayPlayerInfo();
+    startParticleSystem();
+}
+
+// Exposer la fonction globalement
+window.continueToPassword = continueToPassword;
 
 /**
  * Vérifie si le joueur a besoin de choisir un avatar après connexion
  */
 function checkAvatarSelectionNeeded() {
-    // Si pas de profil, afficher la sélection d'avatar
-    if (!playerProfile.name || !playerProfile.avatar) {
-        showAvatarSelection();
-        return true;
-    }
-    return false;
+    // Toujours retourner false pour forcer la sélection d'avatar
+    // (ou tu peux vérifier si un profil existe déjà)
+    return !playerProfile.name || !playerProfile.avatar;
 }
 
 /**
  * Affiche l'interface de sélection d'avatar (après connexion)
  */
+/**
+ * Affiche l'interface de sélection d'avatar (après déverrouillage)
+ */
 function showAvatarSelection() {
-    const gameScreen = document.getElementById('game-screen');
+    const avatarScreen = document.getElementById('avatar-screen');
     
     // Créer l'interface de sélection d'avatar
-    const avatarSelection = document.createElement('div');
-    avatarSelection.className = 'avatar-selection';
-    avatarSelection.innerHTML = `
-        <h3>🎭 Choisissez votre profil</h3>
-        
-        <div class="avatar-tabs">
-            <button class="tab-btn active" onclick="switchAvatarTab('game')">Personnages du jeu</button>
-            <button class="tab-btn" onclick="switchAvatarTab('custom')">Créer le mien</button>
-        </div>
-        
-        <div id="game-avatars" class="avatar-grid">
-            <div class="loading">Chargement...</div>
-        </div>
-        
-        <div id="custom-avatar" class="custom-avatar-form">
-            <div class="form-group">
-                <label for="player-name">Nom du joueur :</label>
-                <input type="text" id="player-name" placeholder="Entrez votre nom..." maxlength="20">
+    avatarScreen.innerHTML = `
+        <h1>🎭 Choisir votre profil</h1>
+        <div class="avatar-selection">
+            <div class="avatar-tabs">
+                <button class="tab-btn active" onclick="switchAvatarTab('game')">Personnages du jeu</button>
+                <button class="tab-btn" onclick="switchAvatarTab('custom')">Créer le mien</button>
             </div>
-            <div class="form-group">
-                <label for="player-image">Votre photo :</label>
-                <input type="file" id="player-image" accept="image/*" onchange="previewCustomAvatar(event)">
+            
+            <div id="game-avatars" class="avatar-grid">
+                <div class="loading">Chargement...</div>
             </div>
-            <img id="avatar-preview" class="avatar-preview" style="display: none;" alt="Aperçu">
-            <div class="form-buttons">
-                <button class="btn-save" onclick="saveCustomAvatar()">Créer</button>
-                <button class="btn-cancel" onclick="cancelCustomAvatar()">Annuler</button>
+            
+            <div id="custom-avatar" class="custom-avatar-form">
+                <div class="form-group">
+                    <label for="player-name">Nom du joueur :</label>
+                    <input type="text" id="player-name" placeholder="Entrez votre nom..." maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label for="player-image">Votre photo :</label>
+                    <input type="file" id="player-image" accept="image/*" onchange="previewCustomAvatar(event)">
+                </div>
+                <img id="avatar-preview" class="avatar-preview" style="display: none;" alt="Aperçu">
+                <div class="form-buttons">
+                    <button class="btn-save" onclick="saveCustomAvatar()">Créer</button>
+                    <button class="btn-cancel" onclick="cancelCustomAvatar()">Annuler</button>
+                </div>
             </div>
         </div>
     `;
     
-    // Insérer au début de l'écran de jeu
-    gameScreen.insertBefore(avatarSelection, gameScreen.firstChild);
-    
-    // Charger les avatars du jeu
+    // Charger les avatars du jeu maintenant que les données sont disponibles
     loadGameAvatars();
+}
+
+/**
+ * Démarre le jeu après sélection d'avatar
+ */
+function startActualGame() {
+    // Basculer vers l'écran de jeu
+    document.getElementById('avatar-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display = 'block';
+    document.getElementById('game-screen').classList.add('game-screen-enter');
+    
+    // Afficher les infos du joueur
+    displayPlayerInfo();
+    startParticleSystem();
+    
+    // Démarrer le jeu
+    if (typeof continueGameAfterAvatar === 'function') {
+        continueGameAfterAvatar();
+    }
 }
 
 /**
@@ -204,6 +291,26 @@ function loadGameAvatars() {
     });
 }
 
+
+
+
+/**
+ * Prévisualise l'avatar personnalisé
+ */
+function previewCustomAvatar(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('avatar-preview');
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 /**
  * Sélectionne un avatar du jeu
  */
@@ -222,29 +329,9 @@ function selectGameAvatar(name, bgColor, letter) {
     };
     
     savePlayerProfile();
-    hideAvatarSelection();
-    displayPlayerInfo();
-    startParticleSystem();
     
-    // Démarrer le jeu maintenant
+    // Démarrer le jeu directement
     startActualGame();
-}
-
-/**
- * Prévisualise l'avatar personnalisé
- */
-function previewCustomAvatar(event) {
-    const file = event.target.files[0];
-    const preview = document.getElementById('avatar-preview');
-    
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    }
 }
 
 /**
@@ -274,12 +361,28 @@ function saveCustomAvatar() {
     };
     
     savePlayerProfile();
-    hideAvatarSelection();
+    
+    // Démarrer le jeu directement
+    startActualGame();
+}
+
+/**
+ * Démarre le jeu après sélection d'avatar
+ */
+function startActualGame() {
+    // Basculer vers l'écran de jeu
+    document.getElementById('avatar-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display = 'block';
+    document.getElementById('game-screen').classList.add('game-screen-enter');
+    
+    // Afficher les infos du joueur
     displayPlayerInfo();
     startParticleSystem();
     
-    // Démarrer le jeu maintenant
-    startActualGame();
+    // Démarrer le jeu
+    if (typeof continueGameAfterAvatar === 'function') {
+        continueGameAfterAvatar();
+    }
 }
 
 /**
