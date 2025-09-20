@@ -1,7 +1,7 @@
 /**
  * Données chiffrées pour le jeu "Qui est-ce ?" avec images intégrées
  * 
- * Généré le: 2025-07-29T10:14:59.277Z
+ * Généré le: 2025-07-26T18:36:15.757Z
  * Personnes: 14
  * Photos: 14
  * 
@@ -16,10 +16,113 @@ const ENCRYPTED_GAME_DATA = "Pg1FIw4AChAKEHYNBA4+GwIfWlVAF0lUFyUAGQBBEghuRzc1Ljs
 const GAME_INFO = {
     totalPeople: 14,
     totalPhotos: 14,
-    generatedAt: "2025-07-29T10:14:59.277Z",
+    generatedAt: "2025-07-26T18:36:15.757Z",
     version: "2.0",
     hasEmbeddedImages: true
 };
+
+// Fonction de déchiffrement (mise à jour pour gérer les images)
+function decrypt(encryptedData, password) {
+    try {
+        const encrypted = atob(encryptedData);
+        let decrypted = '';
+        
+        for (let i = 0; i < encrypted.length; i++) {
+            decrypted += String.fromCharCode(
+                encrypted.charCodeAt(i) ^ password.charCodeAt(i % password.length)
+            );
+        }
+        
+        // Essayer de parser en JSON, sinon retourner la chaîne
+        try {
+            return JSON.parse(decrypted);
+        } catch {
+            return decrypted; // Pour les images base64
+        }
+    } catch (error) {
+        throw new Error('Déchiffrement échoué - mot de passe incorrect ou données corrompues');
+    }
+}
+
+// Fonction pour déchiffrer et afficher une image
+function decryptImage(encryptedImage, password) {
+    try {
+        const decryptedImage = decrypt(encryptedImage, password);
+        
+        // Vérifier que c'est bien une URL data:
+        if (typeof decryptedImage === 'string' && decryptedImage.startsWith('data:')) {
+            return decryptedImage;
+        } else {
+            throw new Error("Format d'image invalide");
+        }
+    } catch (error) {
+        throw new Error('Erreur déchiffrement image: ' + error.message);
+    }
+}
+
+// Fonction de validation des données
+function validateGameData(data) {
+    const result = {
+        valid: true,
+        errors: [],
+        stats: {
+            totalPeople: 0,
+            totalPhotos: 0
+        }
+    };
+
+    try {
+        if (!Array.isArray(data)) {
+            result.valid = false;
+            result.errors.push('Les données doivent être un tableau');
+            return result;
+        }
+
+        if (data.length < 2) {
+            result.valid = false;
+            result.errors.push('Il faut au moins 2 personnes pour jouer');
+            return result;
+        }
+
+        data.forEach((person, index) => {
+            if (!person.name || typeof person.name !== 'string' || person.name.trim() === '') {
+                result.valid = false;
+                result.errors.push(`Personne ${index + 1}: nom manquant ou invalide`);
+            }
+
+            if (!person.photos || !Array.isArray(person.photos)) {
+                result.valid = false;
+                result.errors.push(`Personne ${index + 1}: liste de photos manquante ou invalide`);
+            } else if (person.photos.length === 0) {
+                result.valid = false;
+                result.errors.push(`Personne ${index + 1}: aucune photo fournie`);
+            } else {
+                person.photos.forEach((photo, photoIndex) => {
+                    if (typeof photo !== 'string' || photo.trim() === '') {
+                        result.valid = false;
+                        result.errors.push(`Personne ${index + 1}, photo ${photoIndex + 1}: données invalides`);
+                    }
+                });
+                result.stats.totalPhotos += person.photos.length;
+            }
+
+            result.stats.totalPeople++;
+        });
+
+        const names = data.map(person => person.name?.toLowerCase().trim()).filter(Boolean);
+        const duplicateNames = names.filter((name, index) => names.indexOf(name) !== index);
+        if (duplicateNames.length > 0) {
+            result.valid = false;
+            result.errors.push(`Noms en double détectés: ${[...new Set(duplicateNames)].join(', ')}`);
+        }
+
+    } catch (error) {
+        result.valid = false;
+        result.errors.push('Erreur lors de la validation: ' + error.message);
+    }
+
+    return result;
+}
 
 // Vérification de l'intégrité
 if (typeof ENCRYPTED_GAME_DATA === 'undefined') {
