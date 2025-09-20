@@ -110,10 +110,15 @@ function showPasswordError(message) {
 }
 
 /**
- * Affiche l'écran de saisie du nom (après le mot de passe)
+ * Affiche l'écran de saisie du nom (après le mot de passe ou depuis l'écran de fin)
  */
 function showNameScreen() {
+    // Masquer tous les autres écrans
     document.getElementById('password-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display = 'none';
+    document.getElementById('end-screen').style.display = 'none';
+    
+    // Afficher l'écran de nom
     document.getElementById('name-screen').style.display = 'block';
     
     // Focus sur l'input nom
@@ -807,39 +812,76 @@ function showSuccessMessage(message) {
 }
 
 /**
+ * Supprime le score actuel du joueur du scoreboard
+ */
+function removeCurrentPlayerScore() {
+    try {
+        const scores = getScores();
+        
+        // Filtrer pour supprimer les scores du joueur actuel
+        const filteredScores = scores.filter(scoreData => 
+            scoreData.playerName !== currentPlayerName
+        );
+        
+        // Sauvegarder la liste filtrée
+        localStorage.setItem(SCOREBOARD_KEY, JSON.stringify(filteredScores));
+        
+        console.log(`Scores supprimés pour le joueur: ${currentPlayerName}`);
+    } catch (error) {
+        console.error('Erreur lors de la suppression du score du joueur:', error);
+    }
+}
+
+/**
  * Recommence une partie avec le même joueur
+ * - Supprime le score actuel du joueur
+ * - Relance directement le quiz sans repasser par le déchiffrement et le nom
  */
 function restartGame() {
-    // Réinitialiser les variables
+    // Supprimer le score actuel du joueur de la liste des scores
+    removeCurrentPlayerScore();
+    
+    // Réinitialiser les variables de jeu
     currentQuestion = 0;
     score = 0;
     gameQuestions = [];
     gameStartTime = null;
     
-    // Retour à l'écran de nom (garder le mot de passe déchiffré)
+    // IMPORTANT: Masquer l'écran de fin avant de démarrer
     document.getElementById('end-screen').style.display = 'none';
-    document.getElementById('player-name-input').value = currentPlayerName;
-    showNameScreen();
+    
+    // Nettoyer l'affichage de l'écran de fin pour la prochaine fois
+    document.getElementById('final-player-name').textContent = '---';
+    document.getElementById('final-emoji').textContent = '';
+    document.getElementById('final-percentage').textContent = '0%';
+    document.getElementById('final-score').textContent = 'Score: 0 / 0';
+    document.getElementById('final-message').textContent = '';
+    document.getElementById('rank-info').textContent = '';
+    
+    // Relancer directement le jeu sans repasser par les écrans précédents
+    startGame();
 }
 
 /**
  * Nouveau joueur
+ * - Garde le score du joueur actuel
+ * - Ne passe pas par la page déchiffrement mais par la page de choix de nom
  */
 function newPlayer() {
-    // Réinitialiser complètement
-    currentPlayerName = '';
-    currentPassword = '';
-    gameData = [];
+    // Réinitialiser les variables de jeu mais garder le mot de passe déchiffré
     currentQuestion = 0;
     score = 0;
     gameQuestions = [];
     gameStartTime = null;
     
-    // Retour à l'écran de mot de passe
+    // Réinitialiser le nom du joueur
+    currentPlayerName = '';
+    
+    // Aller directement à l'écran de saisie du nom (garder le mot de passe déchiffré)
     document.getElementById('end-screen').style.display = 'none';
     document.getElementById('player-name-input').value = '';
-    document.getElementById('password-input').value = '';
-    showPasswordScreen();
+    document.getElementById('name-error').style.display = 'none';
+    showNameScreen();
 }
 
 /**
