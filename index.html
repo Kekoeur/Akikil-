@@ -4,12 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AkikilèleQ 🍑</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style-retro.css">
 </head>
 <body>
+    <!-- Titre principal fixe -->
+    <div class="main-title">
+        <h1>🍑 AkikilèleQ 🍑</h1>
+    </div>
+
+    <!-- Bouton scoreboard flottant -->
+    <button class="floating-scoreboard-btn" onclick="showFullScoreboard()" title="Voir le scoreboard">
+        🏆
+    </button>
+
     <div class="game-container">
+        <!-- Écran de mot de passe -->
         <div id="password-screen">
-            <h1>🔐 Accès Sécurisé</h1>
             <div class="info-box">
                 <strong>🛡️ Jeu Protégé</strong><br>
                 Entrez le mot de passe pour déchiffrer les données et accéder au jeu.
@@ -19,21 +29,53 @@
                     type="password" 
                     id="password-input" 
                     class="password-input" 
-                    placeholder="Mot de passe requis..." 
+                    placeholder="MOT DE PASSE REQUIS..." 
                     onkeypress="handlePasswordKeyPress(event)"
                 >
                 <button class="unlock-btn" onclick="unlockGame()">
-                    🔓 Déverrouiller le jeu
+                    🔓 DÉVERROUILLER LE JEU
                 </button>
                 <div id="password-error" class="error-message" style="display: none;"></div>
             </div>
         </div>
 
-        <div id="game-screen" style="display: none;">
-            <h1>🍑 AkikilèleQ 🍑</h1>
-            <div class="score">
-                Score: <span id="score">0</span> / <span id="total">0</span>
+        <!-- Écran de saisie du nom -->
+        <div id="name-screen" style="display: none;">
+            <div class="info-box">
+                <strong>🎮 Bienvenue champion !</strong><br>
+                Entre ton nom pour commencer à jouer et apparaître dans le scoreboard.
             </div>
+            <div class="name-container">
+                <input 
+                    type="text" 
+                    id="player-name-input" 
+                    class="name-input" 
+                    placeholder="TON NOM...." 
+                    maxlength="20"
+                    onkeypress="handleNameKeyPress(event)"
+                >
+                <button class="start-btn" onclick="startWithName()">
+                    🚀 COMMENCER
+                </button>
+                <div id="name-error" class="error-message" style="display: none;"></div>
+                <button class="back-btn" onclick="goBackToPassword()">
+                    ⬅️ RETOUR
+                </button>
+            </div>
+        </div>
+
+        <!-- Écran de jeu -->
+        <div id="game-screen" style="display: none;">
+            <div class="game-header">
+                <div class="player-info">
+                    <span class="player-label">JOUEUR:</span>
+                    <span id="game-player-name" class="player-name">---</span>
+                </div>
+                <div class="score">
+                    SCORE: <span id="score">0</span> / <span id="total">0</span>
+                </div>
+            </div>
+            
             <div class="progress-bar">
                 <div class="progress-fill" id="progress"></div>
             </div>
@@ -42,7 +84,7 @@
                 <img id="current-photo" alt="Photo mystère" style="display: none;">
                 <div id="image-loading" class="image-loading" style="display: none;">
                     <div class="loading-spinner"></div>
-                    <div>Déchiffrement de l'image...</div>
+                    <div>DÉCHIFFREMENT EN COURS...</div>
                 </div>
             </div>
             
@@ -51,13 +93,59 @@
             <div class="feedback" id="feedback"></div>
             
             <button class="next-btn" id="next-btn" onclick="nextQuestion()" style="display: none;">
-                Question suivante ➡️
+                QUESTION SUIVANTE ➡️
             </button>
+        </div>
+
+        <!-- Écran de fin avec scoreboard -->
+        <div id="end-screen" style="display: none;">
+            <div class="final-result">
+                <div class="final-player">
+                    <span class="player-label">JOUEUR:</span>
+                    <span id="final-player-name" class="player-name">---</span>
+                </div>
+                <div id="final-emoji" class="final-emoji">🏆</div>
+                <div id="final-percentage" class="final-percentage">100%</div>
+                <div id="final-score" class="final-score">Score: 10 / 10</div>
+                <div id="final-message" class="final-message">Champion absolu !</div>
+                <div id="rank-info" class="rank-info">🥇 Nouveau record !</div>
+            </div>
+
+            <!-- Actions de fin -->
+            <div class="end-actions">
+                <button class="restart-btn" onclick="restartGame()">
+                    🔄 REJOUER
+                </button>
+                <button class="new-player-btn" onclick="newPlayer()">
+                    👤 NOUVEAU JOUEUR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour scoreboard -->
+    <div id="scoreboard-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 HALL OF FAME 🏆</h2>
+                <button class="close-modal" onclick="hideFullScoreboard()">✕</button>
+            </div>
+            <div id="modal-scoreboard-content" class="modal-scoreboard">
+                <!-- Contenu généré dynamiquement -->
+            </div>
+            <div class="modal-actions">
+                <button class="clear-scores-btn" onclick="clearScoreboard()">
+                    🗑️ VIDER LE SCOREBOARD
+                </button>
+                <button class="close-modal-btn" onclick="hideFullScoreboard()">
+                    ⬅️ FERMER
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Scripts -->
     <script src="data/encrypted-data.js"></script>
-    <script src="js/game.js"></script>
+    <script src="js/scoreboard.js"></script>
 </body>
 </html>
